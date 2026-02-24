@@ -16,3 +16,7 @@ venv/
 # Editors
 .vscode/
 .idea/
+
+# PocketBase
+backend/pocketbase/pocketbase
+backend/pocketbase/pb_data/
