@@ -62,3 +62,11 @@ async def get_document(doc_id: str, token: str):
             headers={"Authorization": f"Bearer {token}"}
         )
         return response.status_code, response.json()
+    
+async def delete_document(doc_id: str, token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(
+            f"{POCKETBASE_URL}/api/collections/documents/records/{doc_id}",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        return response.status_code

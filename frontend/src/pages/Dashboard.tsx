@@ -38,6 +38,10 @@ function Dashboard() {
     setDocuments((prev) => [doc, ...prev])
   }
 
+  function handleDeleted(id: string) {
+    setDocuments((prev) => prev.filter((d) => d.id !== id))
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <DashboardNav />
@@ -48,7 +52,9 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">My Documents</h1>
-            <p className="text-gray-400 text-sm mt-1">Upload a document to start chatting with it</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {loading ? 'Loading...' : `${documents.length} document${documents.length !== 1 ? 's' : ''}`}
+            </p>
           </div>
           <button
             onClick={() => setShowUpload(true)}
@@ -60,7 +66,15 @@ function Dashboard() {
 
         {/* Loading */}
         {loading && (
-          <div className="text-center text-gray-500 py-20">Loading documents...</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-5 animate-pulse">
+                <div className="w-8 h-8 bg-gray-800 rounded mb-3" />
+                <div className="h-4 bg-gray-800 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-800 rounded w-1/3" />
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Empty state */}
@@ -85,6 +99,7 @@ function Dashboard() {
               <DocumentCard
                 key={doc.id}
                 doc={doc}
+                onDeleted={handleDeleted}
               />
             ))}
           </div>

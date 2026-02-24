@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
-from app.pocketbase import create_document, get_user_documents, get_current_user, get_document
+from app.pocketbase import create_document, get_user_documents, get_current_user, get_document, delete_document
 import PyPDF2
 import io
 
@@ -64,3 +64,11 @@ async def get_single_document(doc_id: str, authorization: str = Header(...)):
     if status != 200:
         raise HTTPException(status_code=404, detail="Document not found")
     return data
+
+@router.delete("/{doc_id}")
+async def remove_document(doc_id: str, authorization: str = Header(...)):
+    token = authorization.replace("Bearer ", "")
+    status = await delete_document(doc_id, token)
+    if status != 204:
+        raise HTTPException(status_code=status, detail="Failed to delete document")
+    return {"message": "Document deleted"}
