@@ -24,14 +24,23 @@ async def login_user(email: str, password: str):
             }
         )
         return response.status_code, response.json()
-    
-async def create_document(title: str, content: str, token: str):
+
+async def get_current_user(token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{POCKETBASE_URL}/api/collections/users/auth-refresh",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        return response.status_code, response.json()
+
+async def create_document(title: str, content: str, token: str, user_id: str):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{POCKETBASE_URL}/api/collections/documents/records",
             json={
                 "title": title,
                 "content": content,
+                "user": user_id,
             },
             headers={"Authorization": token}
         )

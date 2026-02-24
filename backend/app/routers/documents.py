@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
-from app.pocketbase import create_document, get_user_documents
+from app.pocketbase import create_document, get_user_documents, get_current_user
 import PyPDF2
 import io
 
@@ -23,6 +23,13 @@ async def upload_document(
     authorization: str = Header(...)
 ):
     token = authorization.replace("Bearer ", "")
+
+    # Get current user id from token
+    user_status, user_data = await get_current_user(token)
+    if user_status != 200:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user_id = user_data["record"]["id"]
+
     file_bytes = await file.read()
     text = extract_text(file_bytes, file.filename)
 
@@ -30,10 +37,11 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="Could not extract text from file")
 
     title = file.filename.rsplit(".", 1)[0]
-    status, data = await create_document(title=title, content=text, token=token)
+    status, data = await create_document(title=title, content=text, token=token, user_id=user_id)
 
     if status != 200:
-        raise HTTPException(status_code=status, detail=data)
+        print("PocketBase error:", data)
+        raise HTTPException(status_code=status, detail=str(data))
 
     return {
         "id": data["id"],
