@@ -51,17 +51,21 @@ function Chat() {
     if (!input.trim() || loading) return
     const userMessage = input.trim()
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
+    const updatedMessages = [...messages, { role: 'user' as const, content: userMessage }]
+    setMessages(updatedMessages)
     setLoading(true)
     try {
       const res = await api.post(
         `/chat/${id}`,
-        { message: userMessage },
+        {
+          message: userMessage,
+          history: messages
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setMessages((prev) => [...prev, { role: 'assistant', content: res.data.reply }])
+      setMessages([...updatedMessages, { role: 'assistant', content: res.data.reply }])
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+      setMessages([...updatedMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     } finally {
       setLoading(false)
     }
