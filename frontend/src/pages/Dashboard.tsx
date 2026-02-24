@@ -85,7 +85,6 @@ function Dashboard() {
               <DocumentCard
                 key={doc.id}
                 doc={doc}
-                onClick={() => console.log('open doc', doc.id)}
               />
             ))}
           </div>

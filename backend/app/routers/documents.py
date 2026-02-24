@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
-from app.pocketbase import create_document, get_user_documents, get_current_user
+from app.pocketbase import create_document, get_user_documents, get_current_user, get_document
 import PyPDF2
 import io
 
@@ -40,7 +40,6 @@ async def upload_document(
     status, data = await create_document(title=title, content=text, token=token, user_id=user_id)
 
     if status != 200:
-        print("PocketBase error:", data)
         raise HTTPException(status_code=status, detail=str(data))
 
     return {
@@ -56,3 +55,12 @@ async def list_documents(authorization: str = Header(...)):
     if status != 200:
         raise HTTPException(status_code=status, detail=data)
     return data["items"]
+  
+
+@router.get("/{doc_id}")
+async def get_single_document(doc_id: str, authorization: str = Header(...)):
+    token = authorization.replace("Bearer ", "")
+    status, data = await get_document(doc_id, token)
+    if status != 200:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return data

@@ -42,7 +42,7 @@ async def create_document(title: str, content: str, token: str, user_id: str):
                 "content": content,
                 "user": user_id,
             },
-            headers={"Authorization": token}
+            headers={"Authorization": f"Bearer {token}"}
         )
         return response.status_code, response.json()
 
@@ -51,6 +51,14 @@ async def get_user_documents(token: str):
         response = await client.get(
             f"{POCKETBASE_URL}/api/collections/documents/records",
             params={"sort": "-created"},
-            headers={"Authorization": token}
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        return response.status_code, response.json()
+    
+async def get_document(doc_id: str, token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{POCKETBASE_URL}/api/collections/documents/records/{doc_id}",
+            headers={"Authorization": f"Bearer {token}"}
         )
         return response.status_code, response.json()
