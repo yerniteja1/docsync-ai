@@ -24,3 +24,24 @@ async def login_user(email: str, password: str):
             }
         )
         return response.status_code, response.json()
+    
+async def create_document(title: str, content: str, token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{POCKETBASE_URL}/api/collections/documents/records",
+            json={
+                "title": title,
+                "content": content,
+            },
+            headers={"Authorization": token}
+        )
+        return response.status_code, response.json()
+
+async def get_user_documents(token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{POCKETBASE_URL}/api/collections/documents/records",
+            params={"sort": "-created"},
+            headers={"Authorization": token}
+        )
+        return response.status_code, response.json()
