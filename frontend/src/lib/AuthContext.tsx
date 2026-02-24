@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 interface User {
   id: string
@@ -15,7 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('user')
     return stored ? JSON.parse(stored) : null

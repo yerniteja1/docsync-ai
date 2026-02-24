@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: docsync-pocketbase
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile.pocketbase
+    disk:
+      name: pb-data
+      mountPath: /pb_data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 8090
+
+  - type: web
+    name: docsync-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: POCKETBASE_URL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
