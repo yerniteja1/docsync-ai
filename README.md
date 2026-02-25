@@ -3,10 +3,10 @@
 An AI-powered document Q&A SaaS app. Upload any PDF or text file and chat with it using AI.
 
 ## Live Demo
-- Frontend: (coming soon)
-- Backend API Docs: (coming soon)
+- Frontend: https://docsync-ai.vercel.app
+- Backend API Docs: https://docsync-backend.onrender.com/docs
 
-> Note: Backend is hosted on Render free tier and may take 30-50 seconds to wake up on first request.
+> Note: Backend is on Render free tier and may take 30-50 seconds to wake up on first request.
 
 ## Tech Stack
 - **Frontend:** React + TypeScript + Vite + Tailwind CSS
