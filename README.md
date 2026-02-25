@@ -9,11 +9,11 @@ An AI-powered document Q&A SaaS app. Upload any PDF or text file and chat with i
 > Note: Backend is hosted on Render free tier and may take 30-50 seconds to wake up on first request.
 
 ## Tech Stack
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS
+- **Frontend:** React + TypeScript + Vite + Tailwind CSS
 - **Backend:** FastAPI (Python)
-- **Database & Auth:** PocketBase
+- **Database & Auth:** Supabase (PostgreSQL)
 - **AI:** OpenRouter API (Mistral 7B)
-- **Deployment:** Vercel (frontend) + Render (backend + PocketBase)
+- **Deployment:** Vercel (frontend) + Render (backend)
 - **Containerization:** Docker
 
 ## Local Development
@@ -24,11 +24,6 @@ An AI-powered document Q&A SaaS app. Upload any PDF or text file and chat with i
 - Docker (optional)
 
 ### Running locally
-
-**PocketBase:**
-```bash
-cd backend/pocketbase && ./pocketbase serve
-```
 
 **Backend:**
 ```bash
@@ -54,7 +49,6 @@ docker compose up --build
 | Variable | Description |
 |----------|-------------|
 | APP_ENV | development or production |
-| POCKETBASE_URL | PocketBase server URL |
 | OPENROUTER_API_KEY | Your OpenRouter API key |
 | ALLOWED_ORIGINS | Comma separated list of allowed frontend URLs |
 
