@@ -1,9 +1,17 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
-from app.pocketbase import create_document, get_user_documents, get_current_user, get_document, delete_document
+from app.supabase_client import supabase
 import PyPDF2
 import io
+import jwt
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+
+def get_user_id_from_token(token: str) -> str:
+    try:
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 def extract_text(file_bytes: bytes, filename: str) -> str:
     if filename.endswith(".pdf"):
@@ -23,12 +31,7 @@ async def upload_document(
     authorization: str = Header(...)
 ):
     token = authorization.replace("Bearer ", "")
-
-    # Get current user id from token
-    user_status, user_data = await get_current_user(token)
-    if user_status != 200:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    user_id = user_data["record"]["id"]
+    user_id = get_user_id_from_token(token)
 
     file_bytes = await file.read()
     text = extract_text(file_bytes, file.filename)
@@ -37,38 +40,65 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="Could not extract text from file")
 
     title = file.filename.rsplit(".", 1)[0]
-    status, data = await create_document(title=title, content=text, token=token, user_id=user_id)
 
-    if status != 200:
-        raise HTTPException(status_code=status, detail=str(data))
+    res = supabase.table("documents").insert({
+        "title": title,
+        "content": text,
+        "user_id": user_id
+    }).execute()
 
+    if not res.data:
+        raise HTTPException(status_code=500, detail="Failed to save document")
+
+    doc = res.data[0]
     return {
-        "id": data["id"],
-        "title": data["title"],
-        "created": data["created"]
+        "id": doc["id"],
+        "title": doc["title"],
+        "created": doc["created_at"]
     }
 
 @router.get("/")
 async def list_documents(authorization: str = Header(...)):
     token = authorization.replace("Bearer ", "")
-    status, data = await get_user_documents(token)
-    if status != 200:
-        raise HTTPException(status_code=status, detail=data)
-    return data["items"]
-  
+    user_id = get_user_id_from_token(token)
+
+    res = supabase.table("documents")\
+        .select("id, title, created_at")\
+        .eq("user_id", user_id)\
+        .order("created_at", desc=True)\
+        .execute()
+
+    return [
+        {"id": d["id"], "title": d["title"], "created": d["created_at"]}
+        for d in res.data
+    ]
 
 @router.get("/{doc_id}")
 async def get_single_document(doc_id: str, authorization: str = Header(...)):
     token = authorization.replace("Bearer ", "")
-    status, data = await get_document(doc_id, token)
-    if status != 200:
+    user_id = get_user_id_from_token(token)
+
+    res = supabase.table("documents")\
+        .select("*")\
+        .eq("id", doc_id)\
+        .eq("user_id", user_id)\
+        .single()\
+        .execute()
+
+    if not res.data:
         raise HTTPException(status_code=404, detail="Document not found")
-    return data
+
+    return res.data
 
 @router.delete("/{doc_id}")
 async def remove_document(doc_id: str, authorization: str = Header(...)):
     token = authorization.replace("Bearer ", "")
-    status = await delete_document(doc_id, token)
-    if status != 204:
-        raise HTTPException(status_code=status, detail="Failed to delete document")
+    user_id = get_user_id_from_token(token)
+
+    supabase.table("documents")\
+        .delete()\
+        .eq("id", doc_id)\
+        .eq("user_id", user_id)\
+        .execute()
+
     return {"message": "Document deleted"}
