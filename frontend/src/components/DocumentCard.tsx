@@ -1,13 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../lib/api'
+import type { Document } from '../lib/types'
 
 interface Props {
-  doc: {
-    id: string
-    title: string
-    created: string
-  }
+  doc: Document
   onDeleted: (id: string) => void
 }
 

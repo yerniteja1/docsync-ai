@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import api from '../lib/api'
+import type { Document } from '../lib/types'
 
 interface Props {
   onClose: () => void
-  onUploaded: (doc: any) => void
+  onUploaded: (doc: Document) => void
 }
 
 function UploadModal({ onClose, onUploaded }: Props) {

@@ -2,28 +2,46 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../lib/api'
 import { useAuth } from '../lib/AuthContext'
+import { loginSchema } from '../lib/schemas'
 
 function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value })
+    const next = { ...errors }
+    delete next[e.target.name as keyof typeof next]
+    setErrors(next)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    const result = loginSchema.safeParse(form)
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string
+        fieldErrors[field] = issue.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
     setLoading(true)
     try {
-      const res = await api.post('/auth/login', form)
+      const res = await api.post('/auth/login', result.data)
       login(res.data.user, res.data.token, res.data.refresh_token)
       navigate('/dashboard')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid email or password')
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { detail?: string } } }
+      setError(apiErr.response?.data?.detail || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -51,9 +69,9 @@ function Login() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.email ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Password</label>
@@ -63,9 +81,9 @@ function Login() {
                 placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.password ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
             </div>
             <button
               type="submit"

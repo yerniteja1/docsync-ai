@@ -3,12 +3,7 @@ import DashboardNav from '../components/DashboardNav'
 import UploadModal from '../components/UploadModal'
 import DocumentCard from '../components/DocumentCard'
 import api from '../lib/api'
-
-interface Document {
-  id: string
-  title: string
-  created: string
-}
+import type { Document } from '../lib/types'
 
 function Dashboard() {
   const [documents, setDocuments] = useState<Document[]>([])

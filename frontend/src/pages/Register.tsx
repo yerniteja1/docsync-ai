@@ -1,34 +1,48 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../lib/api'
+import { registerSchema } from '../lib/schemas'
 
 function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value })
+    const next = { ...errors }
+    delete next[e.target.name]
+    setErrors(next)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (form.password !== form.confirm) {
-      setError('Passwords do not match')
+
+    const result = registerSchema.safeParse(form)
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string
+        fieldErrors[field] = issue.message
+      })
+      setErrors(fieldErrors)
       return
     }
+
     setLoading(true)
     try {
       await api.post('/auth/register', {
-        name: form.name,
-        email: form.email,
-        password: form.password,
+        name: result.data.name,
+        email: result.data.email,
+        password: result.data.password,
       })
       navigate('/login')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Something went wrong')
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { detail?: string } } }
+      setError(apiErr.response?.data?.detail || 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -56,9 +70,9 @@ function Register() {
                 placeholder="Your name"
                 value={form.name}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.name ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Email</label>
@@ -68,9 +82,9 @@ function Register() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.email ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Password</label>
@@ -80,9 +94,9 @@ function Register() {
                 placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.password ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
@@ -92,9 +106,9 @@ function Register() {
                 placeholder="••••••••"
                 value={form.confirm}
                 onChange={handleChange}
-                required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
+                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.confirm ? 'border-red-500' : 'border-gray-700'}`}
               />
+              {errors.confirm && <p className="text-red-400 text-xs mt-1">{errors.confirm}</p>}
             </div>
             <button
               type="submit"

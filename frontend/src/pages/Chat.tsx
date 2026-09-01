@@ -1,23 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
-
-interface Document {
-  id: string
-  title: string
-  content: string
-}
+import type { Message, DocumentDetail } from '../lib/types'
 
 function Chat() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [document, setDocument] = useState<Document | null>(null)
+  const [document, setDocument] = useState<DocumentDetail | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
