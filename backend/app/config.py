@@ -5,6 +5,7 @@ load_dotenv()
 
 APP_ENV = os.getenv("APP_ENV", "development")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY", "")
 origins_raw = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
 ALLOWED_ORIGINS = [origin.strip() for origin in origins_raw.split(",")]
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")

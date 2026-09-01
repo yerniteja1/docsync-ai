@@ -3,6 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import type { Message, DocumentDetail } from '../lib/types'
 
+interface Source {
+  content: string
+  chunk_index: number
+}
+
 function Chat() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -12,6 +17,7 @@ function Chat() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [docLoading, setDocLoading] = useState(true)
+  const [sources, setSources] = useState<Source[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -20,7 +26,7 @@ function Chat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, loading])
 
   async function fetchDocument() {
     try {
@@ -40,16 +46,59 @@ function Chat() {
     const updatedMessages = [...messages, { role: 'user' as const, content: userMessage }]
     setMessages(updatedMessages)
     setLoading(true)
+    setSources([])
+
     try {
-      const res = await api.post(
-        `/chat/${id}`,
-        {
-          message: userMessage,
-          history: messages
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${api.defaults.baseURL}/chat/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: userMessage, history: messages }),
+      })
+
+      if (!response.ok) throw new Error('Chat request failed')
+
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('No response body')
+
+      const decoder = new TextDecoder()
+      let assistantContent = ''
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          try {
+            const data = JSON.parse(line.slice(6))
+            if (data.sources) {
+              setSources(data.sources)
+            } else if (data.content) {
+              assistantContent += data.content
+              setMessages([...updatedMessages, { role: 'assistant', content: assistantContent }])
+            } else if (data.error) {
+              assistantContent = data.error
+              setMessages([...updatedMessages, { role: 'assistant', content: assistantContent }])
+            }
+          } catch {
+            continue
+          }
         }
-      )
-      setMessages([...updatedMessages, { role: 'assistant', content: res.data.reply }])
-    } catch (err) {
+      }
+
+      if (!assistantContent) {
+        setMessages([...updatedMessages, { role: 'assistant', content: 'No response received.' }])
+      }
+    } catch {
       setMessages([...updatedMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     } finally {
       setLoading(false)
@@ -130,7 +179,7 @@ function Chat() {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-xl px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+              className={`max-w-xl px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-br-sm'
                   : 'bg-gray-800 text-gray-100 rounded-bl-sm'
@@ -144,13 +193,37 @@ function Chat() {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-800 px-4 py-3 rounded-2xl rounded-bl-sm text-sm text-gray-400">
-              Thinking...
+              <span className="inline-flex gap-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+              </span>
             </div>
           </div>
         )}
 
         <div ref={bottomRef} />
       </div>
+
+      {/* Sources */}
+      {sources.length > 0 && !loading && (
+        <div className="border-t border-gray-800 px-6 py-3 bg-gray-900/50">
+          <div className="max-w-3xl mx-auto">
+            <p className="text-xs text-gray-500 mb-2">Sources used:</p>
+            <div className="flex gap-2 overflow-x-auto">
+              {sources.map((s, i) => (
+                <span
+                  key={i}
+                  className="text-xs bg-gray-800 border border-gray-700 text-gray-400 px-2 py-1 rounded shrink-0"
+                  title={s.content}
+                >
+                  Chunk {s.chunk_index + 1}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="border-t border-gray-800 px-6 py-4 bg-gray-900">

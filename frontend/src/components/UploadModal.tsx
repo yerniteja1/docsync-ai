@@ -62,13 +62,13 @@ function UploadModal({ onClose, onUploaded }: Props) {
           ) : (
             <>
               <p className="text-gray-400 text-sm">Drag & drop or click to browse</p>
-              <p className="text-gray-600 text-xs mt-1">Supports PDF and TXT</p>
+              <p className="text-gray-600 text-xs mt-1">Supports PDF, DOCX, and TXT</p>
             </>
           )}
           <input
             id="fileInput"
             type="file"
-            accept=".pdf,.txt"
+            accept=".pdf,.docx,.txt"
             className="hidden"
             onChange={handleFileChange}
           />

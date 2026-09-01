@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Header
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.supabase_client import supabase
-from app.openrouter import ask_document
+from app.embeddings import get_query_embedding
+from app.openrouter import stream_answer
 import jwt
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -17,6 +19,18 @@ def get_user_id_from_token(token: str) -> str:
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+async def search_chunks(query: str, user_id: str, doc_id: str, top_k: int = 5) -> list[dict]:
+    embedding = await get_query_embedding(query)
+
+    res = supabase.rpc("search_chunks", {
+        "query_embedding": embedding,
+        "match_user_id": user_id,
+        "match_document_id": doc_id,
+        "match_count": top_k,
+    }).execute()
+
+    return res.data or []
+
 @router.post("/{doc_id}")
 async def chat(
     doc_id: str,
@@ -27,7 +41,7 @@ async def chat(
     user_id = get_user_id_from_token(token)
 
     res = supabase.table("documents")\
-        .select("*")\
+        .select("id")\
         .eq("id", doc_id)\
         .eq("user_id", user_id)\
         .single()\
@@ -36,13 +50,22 @@ async def chat(
     if not res.data:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    try:
-        reply = await ask_document(
-            document_content=res.data["content"],
-            question=body.message,
-            history=body.history
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    chunks = await search_chunks(body.message, user_id, doc_id)
 
-    return {"reply": reply}
+    if not chunks:
+        chunks_res = supabase.table("document_chunks")\
+            .select("content, chunk_index")\
+            .eq("document_id", doc_id)\
+            .eq("user_id", user_id)\
+            .order("chunk_index")\
+            .limit(5)\
+            .execute()
+        chunks = chunks_res.data or []
+
+    context = "\n\n---\n\n".join([c["content"] for c in chunks])
+    sources = [{"content": c["content"][:200], "chunk_index": c["chunk_index"]} for c in chunks]
+
+    return StreamingResponse(
+        stream_answer(context, body.message, body.history, sources),
+        media_type="text/event-stream",
+    )
