@@ -1,10 +1,19 @@
-import httpx
+from huggingface_hub import InferenceClient
 from app.config import HUGGINGFACE_API_KEY
 
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
+
+_client = None
+
+
+def _get_client() -> InferenceClient:
+    global _client
+    if _client is None:
+        _client = InferenceClient(token=HUGGINGFACE_API_KEY or None)
+    return _client
 
 
 def chunk_text(text: str) -> list[str]:
@@ -23,28 +32,23 @@ async def get_embeddings(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
 
-    headers = {}
-    if HUGGINGFACE_API_KEY:
-        headers["Authorization"] = f"Bearer {HUGGINGFACE_API_KEY}"
+    client = _get_client()
+    import asyncio
+    import numpy as np
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
-            HF_API_URL,
-            headers=headers,
-            json={"inputs": texts},
+    results = []
+
+    for text in texts:
+        embedding = await asyncio.to_thread(
+            client.feature_extraction, text, model=MODEL
         )
+        arr = np.array(embedding)
+        if arr.ndim == 1:
+            results.append(arr.tolist())
+        else:
+            results.append(arr[0].tolist())
 
-        if response.status_code != 200:
-            raise Exception(f"HuggingFace API error: {response.text}")
-
-        embeddings = response.json()
-
-        if isinstance(embeddings, list) and len(embeddings) > 0:
-            if isinstance(embeddings[0], list):
-                return embeddings
-            return [embeddings]
-
-        raise Exception("Unexpected embedding response format")
+    return results
 
 
 async def get_query_embedding(text: str) -> list[float]:
