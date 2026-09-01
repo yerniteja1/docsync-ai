@@ -1,6 +1,18 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext'
 
 function Home() {
+  const { token, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (token) return <Navigate to="/dashboard" replace />
   return (
     <div className="min-h-screen bg-gray-950 text-white">
 

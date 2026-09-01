@@ -18,6 +18,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+async function validateToken(): Promise<User | null> {
+  const res = await api.get('/auth/me')
+  return res.data.user
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setTokenState] = useState<string | null>(null)
@@ -30,17 +35,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    api.get('/auth/me')
-      .then((res) => {
-        setUser(res.data.user)
+    let cancelled = false
+
+    async function tryValidate() {
+      for (let attempt = 0; attempt < 20; attempt++) {
+        try {
+          const u = await validateToken()
+          if (!cancelled) {
+            setUser(u)
+            setTokenState(storedToken)
+          }
+          return
+        } catch (err: any) {
+          if (err.response?.status === 401) {
+            if (!cancelled) {
+              localStorage.clear()
+              setUser(null)
+              setTokenState(null)
+            }
+            return
+          }
+          await new Promise((r) => setTimeout(r, 3000))
+        }
+      }
+      if (!cancelled) {
         setTokenState(storedToken)
-      })
-      .catch(() => {
-        localStorage.clear()
-        setUser(null)
-        setTokenState(null)
-      })
-      .finally(() => setLoading(false))
+      }
+    }
+
+    tryValidate().finally(() => {
+      if (!cancelled) setLoading(false)
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   function login(user: User, token: string, refreshToken: string) {
