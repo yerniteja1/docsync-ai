@@ -10,6 +10,8 @@ The user has uploaded a document and wants to ask questions about it.
 Answer only based on the document content provided below.
 If the answer is not in the document, say so clearly.
 
+IMPORTANT: Do NOT use markdown formatting (no **bold**, # headers, bullet points, code blocks, etc.). Return plain text only.
+
 --- DOCUMENT START ---
 {document_content[:6000]}
 --- DOCUMENT END ---"""
