@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../lib/api'
-import { useAuth } from '../lib/AuthContext'
 
 interface Props {
   doc: {
@@ -14,7 +13,6 @@ interface Props {
 
 function DocumentCard({ doc, onDeleted }: Props) {
   const navigate = useNavigate()
-  const { token } = useAuth()
   const [deleting, setDeleting] = useState(false)
 
   const date = new Date(doc.created).toLocaleDateString('en-US', {
@@ -26,9 +24,7 @@ function DocumentCard({ doc, onDeleted }: Props) {
     if (!confirm(`Delete "${doc.title}"?`)) return
     setDeleting(true)
     try {
-      await api.delete(`/documents/${doc.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.delete(`/documents/${doc.id}`)
       onDeleted(doc.id)
     } catch (err) {
       console.error(err)

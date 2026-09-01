@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
-import { useAuth } from '../lib/AuthContext'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -16,7 +15,6 @@ interface Document {
 
 function Chat() {
   const { id } = useParams()
-  const { token } = useAuth()
   const navigate = useNavigate()
 
   const [document, setDocument] = useState<Document | null>(null)
@@ -36,9 +34,7 @@ function Chat() {
 
   async function fetchDocument() {
     try {
-      const res = await api.get(`/documents/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await api.get(`/documents/${id}`)
       setDocument(res.data)
     } catch (err) {
       console.error(err)
@@ -60,8 +56,7 @@ function Chat() {
         {
           message: userMessage,
           history: messages
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       )
       setMessages([...updatedMessages, { role: 'assistant', content: res.data.reply }])
     } catch (err) {

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import api from '../lib/api'
-import { useAuth } from '../lib/AuthContext'
 
 interface Props {
   onClose: () => void
@@ -8,7 +7,6 @@ interface Props {
 }
 
 function UploadModal({ onClose, onUploaded }: Props) {
-  const { token } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -31,12 +29,7 @@ function UploadModal({ onClose, onUploaded }: Props) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await api.post('/documents/upload', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      const res = await api.post('/documents/upload', formData)
       onUploaded(res.data)
       onClose()
     } catch (err: any) {

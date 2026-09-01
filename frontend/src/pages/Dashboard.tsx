@@ -3,7 +3,6 @@ import DashboardNav from '../components/DashboardNav'
 import UploadModal from '../components/UploadModal'
 import DocumentCard from '../components/DocumentCard'
 import api from '../lib/api'
-import { useAuth } from '../lib/AuthContext'
 
 interface Document {
   id: string
@@ -12,7 +11,6 @@ interface Document {
 }
 
 function Dashboard() {
-  const { token } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [showUpload, setShowUpload] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -23,9 +21,7 @@ function Dashboard() {
 
   async function fetchDocuments() {
     try {
-      const res = await api.get('/documents/', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await api.get('/documents/')
       setDocuments(res.data)
     } catch (err) {
       console.error(err)

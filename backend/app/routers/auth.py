@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from app.supabase_client import supabase
 
@@ -12,6 +12,9 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 @router.post("/register")
 async def register(body: RegisterRequest):
@@ -40,6 +43,7 @@ async def login(body: LoginRequest):
             raise HTTPException(status_code=400, detail="Invalid email or password")
         return {
             "token": res.session.access_token,
+            "refresh_token": res.session.refresh_token,
             "user": {
                 "id": res.user.id,
                 "name": res.user.user_metadata.get("name", ""),
@@ -48,3 +52,37 @@ async def login(body: LoginRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid email or password")
+
+@router.post("/refresh")
+async def refresh(body: RefreshRequest):
+    try:
+        res = supabase.auth.refresh_session({"refresh_token": body.refresh_token})
+        if res.session is None:
+            raise HTTPException(status_code=401, detail="Refresh failed")
+        return {
+            "token": res.session.access_token,
+            "refresh_token": res.session.refresh_token,
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Refresh failed")
+
+@router.get("/me")
+async def me(authorization: str = Header(...)):
+    try:
+        token = authorization.replace("Bearer ", "")
+        res = supabase.auth.get_user(token)
+        if res.user is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return {
+            "user": {
+                "id": res.user.id,
+                "name": res.user.user_metadata.get("name", ""),
+                "email": res.user.email,
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")

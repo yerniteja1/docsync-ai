@@ -20,7 +20,7 @@ function Login() {
     setLoading(true)
     try {
       const res = await api.post('/auth/login', form)
-      login(res.data.user, res.data.token)
+      login(res.data.user, res.data.token, res.data.refresh_token)
       navigate('/dashboard')
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Invalid email or password')
