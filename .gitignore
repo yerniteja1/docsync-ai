@@ -16,4 +16,5 @@ venv/
 # Editors
 .vscode/
 .idea/
+.ai-memory/
 

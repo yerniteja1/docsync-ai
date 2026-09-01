@@ -27,4 +27,9 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    from app.supabase_client import supabase
+    try:
+        supabase.table("documents").select("id").limit(1).execute()
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "ok", "database": "error", "detail": str(e)}

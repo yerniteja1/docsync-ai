@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Chat from './pages/Chat'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
+import BackendHealthCheck from './components/BackendHealthCheck'
 
 function App() {
   return (
@@ -18,7 +19,9 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <BackendHealthCheck>
+                <Dashboard />
+              </BackendHealthCheck>
             </ProtectedRoute>
           }
         />
@@ -26,7 +29,9 @@ function App() {
           path="/chat/:id"
           element={
             <ProtectedRoute>
-              <Chat />
+              <BackendHealthCheck>
+                <Chat />
+              </BackendHealthCheck>
             </ProtectedRoute>
           }
         />
