@@ -75,8 +75,23 @@ function Chat() {
 
   if (docLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-400">Loading document...</p>
+      <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+        <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-800 bg-gray-900">
+          <div className="w-12 h-4 bg-gray-800 rounded animate-pulse" />
+          <div>
+            <div className="w-32 h-4 bg-gray-800 rounded animate-pulse mb-1" />
+            <div className="w-24 h-3 bg-gray-800 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="flex-1 px-6 py-6 max-w-3xl w-full mx-auto space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+              <div className={`h-10 rounded-2xl animate-pulse ${
+                i % 2 === 0 ? 'w-48 bg-indigo-900' : 'w-64 bg-gray-800'
+              }`} />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

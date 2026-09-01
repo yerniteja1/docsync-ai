@@ -1,4 +1,5 @@
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -40,7 +41,13 @@ api.interceptors.response.use(
       if (!refreshToken) {
         localStorage.clear()
         window.location.href = '/login'
-        return Promise.reject(error)
+    if (error.response?.status === 500) {
+      toast.error('Server error. Please try again later.')
+    } else if (!error.response && error.message === 'Network Error') {
+      toast.error('Network error. Check your connection.')
+    }
+
+    return Promise.reject(error)
       }
 
       if (isRefreshing) {
