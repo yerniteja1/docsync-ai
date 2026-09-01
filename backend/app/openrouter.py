@@ -2,7 +2,7 @@ import httpx
 from app.config import OPENROUTER_API_KEY
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "mistralai/mistral-7b-instruct"
+MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free" #free model
 
 async def ask_document(document_content: str, question: str, history: list) -> str:
     system_prompt = f"""You are a helpful document assistant. 
