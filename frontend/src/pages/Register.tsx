@@ -49,78 +49,122 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-bold text-indigo-400">DocSync AI</Link>
-          <p className="text-gray-400 mt-2">Create your free account</p>
+    <div className="min-h-screen flex">
+      {/* Left: decorative panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10" />
+
+        <div className="absolute top-32 right-16 w-56 h-56 bg-emerald-500/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-40 h-40 bg-teal-500/8 rounded-full blur-3xl" />
+
+        <div className="relative z-10 px-16 max-w-lg">
+          <div className="w-16 h-16 bg-slate-800 border border-slate-700 rounded-2xl flex items-center justify-center mb-8">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-emerald-400">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <circle cx="9" cy="10" r="1" fill="currentColor" />
+              <circle cx="12" cy="10" r="1" fill="currentColor" />
+              <circle cx="15" cy="10" r="1" fill="currentColor" />
+            </svg>
+          </div>
+
+          <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+            Start chatting with<br />your documents today.
+          </h2>
+          <p className="text-slate-400 text-lg leading-relaxed mb-10">
+            Create a free account. No credit card required.
+            Upload your first document in under 30 seconds.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { value: '50MB', label: 'Free storage' },
+              { value: '∞', label: 'Questions' },
+              { value: '<2s', label: 'Response time' },
+              { value: '100%', label: 'Private' },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+                <p className="text-slate-500 text-xs mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      </div>
+
+      {/* Right: form */}
+      <div className="flex-1 flex items-center justify-center px-6 bg-slate-950">
+        <div className="w-full max-w-sm">
+          <Link to="/" className="text-lg font-bold text-teal-400 mb-10 block">DocSync AI</Link>
+
+          <h1 className="text-2xl font-bold text-white mb-1">Create your account</h1>
+          <p className="text-slate-400 text-sm mb-8">Get started for free</p>
+
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-lg">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Name</label>
+              <label className="block text-sm text-slate-400 mb-1.5">Name</label>
               <input
                 name="name"
                 type="text"
                 placeholder="Your name"
                 value={form.name}
                 onChange={handleChange}
-                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.name ? 'border-red-500' : 'border-gray-700'}`}
+                className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 transition text-sm ${errors.name ? 'border-red-500' : 'border-slate-800'}`}
               />
               {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Email</label>
+              <label className="block text-sm text-slate-400 mb-1.5">Email</label>
               <input
                 name="email"
                 type="email"
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={handleChange}
-                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.email ? 'border-red-500' : 'border-gray-700'}`}
+                className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 transition text-sm ${errors.email ? 'border-red-500' : 'border-slate-800'}`}
               />
               {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Password</label>
+              <label className="block text-sm text-slate-400 mb-1.5">Password</label>
               <input
                 name="password"
                 type="password"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
-                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.password ? 'border-red-500' : 'border-gray-700'}`}
+                className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 transition text-sm ${errors.password ? 'border-red-500' : 'border-slate-800'}`}
               />
               {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
+              <label className="block text-sm text-slate-400 mb-1.5">Confirm Password</label>
               <input
                 name="confirm"
                 type="password"
                 placeholder="••••••••"
                 value={form.confirm}
                 onChange={handleChange}
-                className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition ${errors.confirm ? 'border-red-500' : 'border-gray-700'}`}
+                className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 transition text-sm ${errors.confirm ? 'border-red-500' : 'border-slate-800'}`}
               />
               {errors.confirm && <p className="text-red-400 text-xs mt-1">{errors.confirm}</p>}
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-lg font-medium transition mt-2"
+              className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white py-2.5 rounded-lg font-medium transition text-sm mt-1"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
-          <p className="text-center text-gray-500 text-sm mt-6">
+
+          <p className="text-slate-500 text-sm mt-8 text-center">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-400 hover:underline">Login</Link>
+            <Link to="/login" className="text-teal-400 hover:text-teal-300 transition">Sign in</Link>
           </p>
         </div>
       </div>

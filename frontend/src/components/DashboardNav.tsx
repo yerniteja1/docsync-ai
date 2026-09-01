@@ -11,15 +11,15 @@ function DashboardNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-800 bg-gray-900">
-      <span className="text-lg font-bold text-indigo-400">DocSync AI</span>
+    <nav className="flex items-center justify-between px-6 md:px-10 py-4 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+      <span className="text-lg font-bold text-teal-400 tracking-tight">DocSync AI</span>
       <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-slate-400">
           Hi, <span className="text-white font-medium">{user?.name}</span>
         </span>
         <button
           onClick={handleLogout}
-          className="text-sm border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition"
+          className="text-sm border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white px-4 py-2 rounded-lg transition"
         >
           Logout
         </button>
