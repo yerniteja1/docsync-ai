@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Header
+from fastapi import APIRouter, UploadFile, File, HTTPException, Header, Request
 from app.supabase_client import supabase
 from app.embeddings import chunk_text, get_embeddings
+from app.rate_limit import limiter
 import PyPDF2
 from docx import Document as DocxDocument
 import io
@@ -31,7 +32,9 @@ def extract_text(file_bytes: bytes, filename: str) -> str:
         raise HTTPException(status_code=400, detail="Only PDF, DOCX, and TXT files are supported")
 
 @router.post("/upload")
+@limiter.limit("5/minute")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     authorization: str = Header(...)
 ):

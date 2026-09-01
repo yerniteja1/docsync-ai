@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.supabase_client import supabase
 from app.embeddings import get_query_embedding
 from app.openrouter import stream_answer
+from app.rate_limit import limiter
 import jwt
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -32,7 +33,9 @@ async def search_chunks(query: str, user_id: str, doc_id: str, top_k: int = 5) -
     return res.data or []
 
 @router.post("/{doc_id}")
+@limiter.limit("10/minute")
 async def chat(
+    request: Request,
     doc_id: str,
     body: ChatRequest,
     authorization: str = Header(...)
