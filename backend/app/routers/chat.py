@@ -47,7 +47,6 @@ async def chat(
         .select("id")\
         .eq("id", doc_id)\
         .eq("user_id", user_id)\
-        .single()\
         .execute()
 
     if not res.data:

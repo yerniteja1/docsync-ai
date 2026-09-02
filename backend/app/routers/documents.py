@@ -107,13 +107,12 @@ async def get_single_document(doc_id: str, authorization: str = Header(...)):
         .select("*")\
         .eq("id", doc_id)\
         .eq("user_id", user_id)\
-        .single()\
         .execute()
 
     if not res.data:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    return res.data
+    return res.data[0]
 
 @router.delete("/{doc_id}")
 async def remove_document(doc_id: str, authorization: str = Header(...)):
